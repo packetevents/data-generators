@@ -24,6 +24,7 @@ minecraft {
     platform(MinecraftPlatform.SERVER)
 
     runs {
+        server()
         server("generate") {
             mainClass("dev.booky.generation.GenerationMain")
             accessWideners(sourceSets.main.map { it.resources.single { file -> file.name == "generators.accesswidener" } })
