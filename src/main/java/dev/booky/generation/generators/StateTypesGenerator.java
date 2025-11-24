@@ -7,7 +7,7 @@ import com.mojang.logging.LogUtils;
 import dev.booky.generation.util.GenerationUtil;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.slf4j.Logger;
@@ -40,16 +40,16 @@ public class StateTypesGenerator implements IGenerator {
 
         try (BufferedWriter writer = Files.newBufferedWriter(outputPath)) {
             // read inputs
-            Set<ResourceLocation> prevBlocks = GenerationUtil.loadJsonElement(inputPath, JsonArray.class)
+            Set<Identifier> prevBlocks = GenerationUtil.loadJsonElement(inputPath, JsonArray.class)
                     .asList().stream()
-                    .map(JsonElement::getAsString).map(ResourceLocation::parse)
+                    .map(JsonElement::getAsString).map(Identifier::parse)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
-            Set<ResourceLocation> blocks = BuiltInRegistries.BLOCK.stream()
+            Set<Identifier> blocks = BuiltInRegistries.BLOCK.stream()
                     .map(BuiltInRegistries.BLOCK::getKey)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
             // determine which blocks have been removed compared to input
-            Set<ResourceLocation> removedBlocks = new LinkedHashSet<>(prevBlocks);
+            Set<Identifier> removedBlocks = new LinkedHashSet<>(prevBlocks);
             removedBlocks.removeAll(blocks);
             writer.write("// Removed blocks (");
             writer.write(SharedConstants.getCurrentVersion().name());
@@ -58,7 +58,7 @@ public class StateTypesGenerator implements IGenerator {
             writer.newLine();
 
             // determine which blocks have been added compared to input
-            Set<ResourceLocation> addedBlocks = new LinkedHashSet<>(blocks);
+            Set<Identifier> addedBlocks = new LinkedHashSet<>(blocks);
             addedBlocks.removeAll(prevBlocks);
             writer.write("// Added blocks (");
             writer.write(SharedConstants.getCurrentVersion().name());
@@ -67,7 +67,7 @@ public class StateTypesGenerator implements IGenerator {
             writer.newLine();
 
             // generate code for each added block
-            for (ResourceLocation addedBlock : addedBlocks) {
+            for (Identifier addedBlock : addedBlocks) {
                 writer.newLine();
                 writer.write("public static StateType ");
                 writer.write(GenerationUtil.asFieldName(addedBlock));

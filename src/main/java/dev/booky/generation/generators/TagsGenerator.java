@@ -7,17 +7,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.booky.generation.util.GenerationUtil;
 import net.minecraft.SharedConstants;
-import net.minecraft.Util;
 import net.minecraft.WorldVersion;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.data.tags.VanillaBlockTagsProvider;
 import net.minecraft.data.tags.VanillaItemTagsProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.Util;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -69,15 +69,15 @@ public final class TagsGenerator implements IGenerator {
         return Collections.unmodifiableList(tagDirs);
     }
 
-    private static String buildTagRef(TagType tagType, ResourceLocation tagName) {
+    private static String buildTagRef(TagType tagType, Identifier tagName) {
         return buildRef(tagType.tagsClass(), tagName);
     }
 
-    private static String buildTypeRef(TagType tagType, ResourceLocation tagName) {
+    private static String buildTypeRef(TagType tagType, Identifier tagName) {
         return buildRef(tagType.typesClass(), tagName);
     }
 
-    private static String buildRef(String className, ResourceLocation tagName) {
+    private static String buildRef(String className, Identifier tagName) {
         return className + '.' + GenerationUtil.asFieldName(tagName);
     }
 
@@ -95,8 +95,8 @@ public final class TagsGenerator implements IGenerator {
 
         // build info data for available tag types - PacketEvents only supports blocks/items at the moment
         List<TagType> tagTypes = List.of(
-                new TagType(ResourceLocation.withDefaultNamespace("block"), "BlockTags", "StateTypes", BlockTags.class),
-                new TagType(ResourceLocation.withDefaultNamespace("item"), "ItemTags", "ItemTypes", ItemTags.class)
+                new TagType(Identifier.withDefaultNamespace("block"), "BlockTags", "StateTypes", BlockTags.class),
+                new TagType(Identifier.withDefaultNamespace("item"), "ItemTags", "ItemTypes", ItemTags.class)
         );
 
         // the content of this map is used for copying the tag content from
@@ -109,7 +109,7 @@ public final class TagsGenerator implements IGenerator {
             // to have consistent ordering
             //
             // the paths of the specific tag are populated later
-            Map<ResourceLocation, List<Path>> tagPaths = new LinkedHashMap<>();
+            Map<Identifier, List<Path>> tagPaths = new LinkedHashMap<>();
             for (Field field : tagType.mcClass().getFields()) {
                 if (!Modifier.isPublic(field.getModifiers())
                         || !Modifier.isStatic(field.getModifiers())
@@ -137,15 +137,15 @@ public final class TagsGenerator implements IGenerator {
                     tree.filter(Files::isRegularFile).forEach(path -> {
                         String tagPath = tagDir.relativize(path).toString();
                         tagPath = tagPath.substring(0, tagPath.length() - ".json".length());
-                        ResourceLocation tagName = ResourceLocation.parse(tagPath);
+                        Identifier tagName = Identifier.parse(tagPath);
                         tagPaths.get(tagName).add(path); // add path to tag
                     });
                 }
             }
 
             // accumulate tags from every result
-            Map<ResourceLocation, Tag> tagObjs = new LinkedHashMap<>();
-            for (Map.Entry<ResourceLocation, List<Path>> entry : tagPaths.entrySet()) {
+            Map<Identifier, Tag> tagObjs = new LinkedHashMap<>();
+            for (Map.Entry<Identifier, List<Path>> entry : tagPaths.entrySet()) {
                 // read values from every file
                 JsonArray values = new JsonArray();
                 for (Path path : entry.getValue()) {
@@ -164,8 +164,8 @@ public final class TagsGenerator implements IGenerator {
             }
 
             // build parent structure, required for correct ordering
-            for (Map.Entry<ResourceLocation, Tag> entry : tagObjs.entrySet()) {
-                for (ResourceLocation tag : entry.getValue().content.tags()) {
+            for (Map.Entry<Identifier, Tag> entry : tagObjs.entrySet()) {
+                for (Identifier tag : entry.getValue().content.tags()) {
                     entry.getValue().parents.add(tagObjs.get(tag));
                 }
             }
@@ -206,13 +206,14 @@ public final class TagsGenerator implements IGenerator {
 
     // represents a type of tags supported by PacketEvents
     private record TagType(
-            ResourceLocation registryName,
+            Identifier registryName,
             String tagsClass,
             String typesClass,
             Class<?> mcClass
-    ) {}
+    ) {
+    }
 
-    private record TagContent(List<ResourceLocation> tags, List<ResourceLocation> types) {
+    private record TagContent(List<Identifier> tags, List<Identifier> types) {
 
         public TagContent() {
             this(new ArrayList<>(), new ArrayList<>());
@@ -220,9 +221,9 @@ public final class TagsGenerator implements IGenerator {
 
         public void add(String string) {
             if (string.indexOf('#') == 0) { // tag identifier
-                this.tags.add(ResourceLocation.parse(string.substring(1)));
+                this.tags.add(Identifier.parse(string.substring(1)));
             } else { // normal type entry
-                this.types.add(ResourceLocation.parse(string));
+                this.types.add(Identifier.parse(string));
             }
         }
 
@@ -234,13 +235,13 @@ public final class TagsGenerator implements IGenerator {
     private static final class Tag {
 
         private final TagType tagType;
-        private final ResourceLocation name;
+        private final Identifier name;
         private final TagContent content;
 
         // used for sorting tags to counter forward references
         private final List<Tag> parents = new ArrayList<>();
 
-        private Tag(TagType tagType, ResourceLocation name, TagContent content) {
+        private Tag(TagType tagType, Identifier name, TagContent content) {
             this.tagType = tagType;
             this.name = name;
             this.content = content;
@@ -266,7 +267,7 @@ public final class TagsGenerator implements IGenerator {
 
             // not able to copy - build tag string
             StringBuilder builder = new StringBuilder(selfRef);
-            for (ResourceLocation tag : this.content.tags()) {
+            for (Identifier tag : this.content.tags()) {
                 builder.append(".addTag(").append(buildTagRef(this.tagType, tag)).append(')');
             }
             if (!this.content.types().isEmpty()) {

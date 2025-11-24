@@ -9,8 +9,8 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,7 +21,7 @@ public final class RegistryGenerator implements IGenerator {
     static <T> JsonObject generateJsonObject(Registry<T> registry) {
         JsonObject obj = new JsonObject();
         for (T element : registry) {
-            ResourceLocation elementKey = registry.getKey(element);
+            Identifier elementKey = registry.getKey(element);
             if (elementKey == null) {
                 throw new IllegalStateException("Illegal element " + element + " in " + registry + "; no key found");
             }
@@ -41,7 +41,7 @@ public final class RegistryGenerator implements IGenerator {
     static <T> JsonArray generateJsonArray(HolderLookup<T> registry) {
         JsonArray arr = new JsonArray();
         registry.listElementIds()
-                .map(ResourceKey::location)
+                .map(ResourceKey::identifier)
                 .map(GenerationUtil::toString)
                 .forEach(arr::add);
         return arr;
@@ -57,7 +57,7 @@ public final class RegistryGenerator implements IGenerator {
     }
 
     private static void generateJsonArray(Path outDir, HolderLookup<?> lookup, ResourceKey<?> registryKey) throws IOException {
-        generateJsonArray(outDir, lookup, GenerationUtil.toString(registryKey.location()));
+        generateJsonArray(outDir, lookup, GenerationUtil.toString(registryKey.identifier()));
     }
 
     private static void generateJsonArray(Path outDir, HolderLookup<?> lookup, String registryKey) throws IOException {

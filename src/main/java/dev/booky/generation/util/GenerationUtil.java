@@ -9,7 +9,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.registries.VanillaRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -54,14 +54,14 @@ public final class GenerationUtil {
 
     @SuppressWarnings("unchecked") // this works
     public static String getRegistryName(Registry<?> registry) {
-        ResourceLocation registryKey = ((Registry<Registry<?>>) BuiltInRegistries.REGISTRY).getKey(registry);
+        Identifier registryKey = ((Registry<Registry<?>>) BuiltInRegistries.REGISTRY).getKey(registry);
         if (registryKey == null) {
             throw new IllegalStateException("Can't get name of unregistered registry: " + registry);
         }
         return toString(registryKey);
     }
 
-    public static String asFieldName(ResourceLocation location) {
+    public static String asFieldName(Identifier location) {
         return toString(location)
                 .toUpperCase(Locale.ROOT)
                 .replace(File.separatorChar, '_') // remove nesting
@@ -69,8 +69,8 @@ public final class GenerationUtil {
                 .replaceAll("__+", "_"); // remove adjacent underscores
     }
 
-    public static String toString(ResourceLocation resourceLoc) {
-        if (ResourceLocation.DEFAULT_NAMESPACE.equals(resourceLoc.getNamespace())) {
+    public static String toString(Identifier resourceLoc) {
+        if (Identifier.DEFAULT_NAMESPACE.equals(resourceLoc.getNamespace())) {
             return resourceLoc.getPath();
         }
         return resourceLoc.toString();

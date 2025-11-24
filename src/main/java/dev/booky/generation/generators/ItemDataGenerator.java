@@ -10,7 +10,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 
 import java.io.IOException;
@@ -57,7 +57,7 @@ public class ItemDataGenerator implements IGenerator {
         }
 
         JsonObject obj = new JsonObject();
-        ResourceLocation defKey = ResourceLocation.fromNamespaceAndPath("packetevents", "default");
+        Identifier defKey = Identifier.fromNamespaceAndPath("packetevents", "default");
         obj.add(GenerationUtil.toString(defKey), defObj);
         for (Item item : BuiltInRegistries.ITEM.stream()
                 .sorted(Comparator.comparing(Item::getDescriptionId))
@@ -70,7 +70,7 @@ public class ItemDataGenerator implements IGenerator {
             if (dataObj.isEmpty()) {
                 continue;
             }
-            ResourceLocation itemKey = BuiltInRegistries.ITEM.getKey(item);
+            Identifier itemKey = BuiltInRegistries.ITEM.getKey(item);
             obj.add(GenerationUtil.toString(itemKey), dataObj);
         }
         GenerationUtil.saveJsonElement(obj, outDir.resolve(genName + ".json"));
@@ -91,7 +91,7 @@ public class ItemDataGenerator implements IGenerator {
             buf.readBytes(bytes);
             String string = Base64.getEncoder().encodeToString(bytes);
 
-            ResourceLocation typeKey = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(type);
+            Identifier typeKey = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(type);
             obj.addProperty(GenerationUtil.toString(typeKey), string);
         } finally {
             buf.release();

@@ -10,7 +10,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.AxeItem;
@@ -59,14 +59,14 @@ public final class ItemTypesGenerator implements IGenerator {
 
         try (BufferedWriter writer = Files.newBufferedWriter(outputPath)) {
             // read inputs
-            Set<ResourceLocation> prevItems = GenerationUtil.loadJsonElement(inputPath, JsonObject.class).keySet().stream()
-                    .map(String::toLowerCase).map(ResourceLocation::parse).collect(Collectors.toCollection(LinkedHashSet::new));
-            Set<ResourceLocation> items = BuiltInRegistries.ITEM.stream()
+            Set<Identifier> prevItems = GenerationUtil.loadJsonElement(inputPath, JsonObject.class).keySet().stream()
+                    .map(String::toLowerCase).map(Identifier::parse).collect(Collectors.toCollection(LinkedHashSet::new));
+            Set<Identifier> items = BuiltInRegistries.ITEM.stream()
                     .map(BuiltInRegistries.ITEM::getKey)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
             // determine which items have been removed compared to input
-            Set<ResourceLocation> removedItems = new LinkedHashSet<>(prevItems);
+            Set<Identifier> removedItems = new LinkedHashSet<>(prevItems);
             removedItems.removeAll(items);
             writer.write("// Removed items (");
             writer.write(SharedConstants.getCurrentVersion().name());
@@ -75,7 +75,7 @@ public final class ItemTypesGenerator implements IGenerator {
             writer.newLine();
 
             // determine which items have been added compared to input
-            Set<ResourceLocation> addedItems = new LinkedHashSet<>(items);
+            Set<Identifier> addedItems = new LinkedHashSet<>(items);
             addedItems.removeAll(prevItems);
             writer.write("// Added items (");
             writer.write(SharedConstants.getCurrentVersion().name());
@@ -84,7 +84,7 @@ public final class ItemTypesGenerator implements IGenerator {
             writer.newLine();
 
             // generate code for each added item
-            for (ResourceLocation addedItem : addedItems) {
+            for (Identifier addedItem : addedItems) {
                 writer.newLine();
                 writer.write("public static final ItemType ");
                 writer.write(asFieldName(addedItem));
@@ -110,7 +110,7 @@ public final class ItemTypesGenerator implements IGenerator {
                     writer.write(')');
                 }
                 if (item instanceof BlockItem blockItem) {
-                    ResourceLocation blockKey = BuiltInRegistries.BLOCK.getKey(blockItem.getBlock());
+                    Identifier blockKey = BuiltInRegistries.BLOCK.getKey(blockItem.getBlock());
                     String blockName = blockKey.getPath().toUpperCase(Locale.ROOT);
                     writer.write(".setPlacedType(StateTypes.");
                     writer.write(blockName);
