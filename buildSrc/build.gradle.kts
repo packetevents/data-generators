@@ -4,5 +4,5 @@ repositories {
 }
 
 dependencies {
-    implementation("org.spongepowered:vanillagradle:0.2.1-20240507.024226-82")
+    implementation("org.spongepowered:vanillagradle:0.3.2")
 }

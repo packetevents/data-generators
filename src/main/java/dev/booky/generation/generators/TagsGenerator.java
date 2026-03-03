@@ -6,8 +6,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.booky.generation.util.GenerationUtil;
-import net.minecraft.SharedConstants;
-import net.minecraft.WorldVersion;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.registries.VanillaRegistries;
@@ -40,8 +38,7 @@ import java.util.stream.Stream;
 public final class TagsGenerator implements IGenerator {
 
     private void runDataGenerator(Path outDir) throws IOException {
-        WorldVersion version = SharedConstants.getCurrentVersion();
-        DataGenerator generator = new DataGenerator(outDir, version, true);
+        DataGenerator generator = new DataGenerator.Uncached(outDir);
 
         DataGenerator.PackGenerator vanilla = generator.getVanillaPack(true);
 
