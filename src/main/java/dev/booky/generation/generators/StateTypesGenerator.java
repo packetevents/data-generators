@@ -79,9 +79,9 @@ public class StateTypesGenerator implements IGenerator {
                 BlockState defState = block.defaultBlockState();
                 writer.write(".blastResistance(" + block.getExplosionResistance() + "f)");
                 writer.write(".hardness(" + block.defaultDestroyTime() + "f)");
-                writer.write(".isBlocking(" + block.properties().hasCollision + ")");
+                writer.write(".isBlocking(" + block.isSolid() + ")");
                 writer.write(".requiresCorrectTool(" + block.properties().requiresCorrectToolForDrops + ")");
-                writer.write(".isSolid(" + defState.isSolid() + ")");
+                writer.write(".isSolid(" + defState.properties().hasCollision + ")");
                 writer.write(".setMaterial(FIXME)");
 
                 if (defState.hasLargeCollisionShape()) {
